@@ -6,9 +6,9 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.1.0' // Your preferred version
-        classpath 'com.google.gms:google-services:4.3.15' // Latest google-services version
-    }
+        classpath 'com.android.tools.build:gradle:8.1.0' 
+        classpath 'com.google.gms:google-services:4.3.15'
+         }
 }
 
 allprojects {
@@ -19,12 +19,9 @@ allprojects {
 }
 
 rootProject.buildDir = "../build"
-subprojects {
-    project.buildDir = "${rootProject.buildDir}/${project.name}"
-}
 
 subprojects {
-    project.evaluationDependsOn(":app")
+    project.buildDir = "${rootProject.buildDir}/${project.name}"
 }
 
 tasks.register("clean", Delete) {
