@@ -23,10 +23,12 @@ android {
 
     defaultConfig {
         applicationId = "com.example.doctor_patient_app"
-        minSdk = 22
+        minSdk = 23
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        multiDexEnabled true
+
     }
 
     buildTypes {
@@ -40,9 +42,12 @@ flutter {
     source = "../.."
 }
 
+// android/app/build.gradle
+apply plugin: 'com.android.application'
+apply plugin: 'com.google.gms.google-services' // Make sure this is present
+
 dependencies {
     implementation platform('com.google.firebase:firebase-bom:33.5.1')
-    implementation 'com.google.firebase:firebase-analytics' // Example Firebase dependency
+    implementation 'com.google.firebase:firebase-analytics' 
+    implementation 'androidx.multidex:multidex:2.0.1' 
 }
-
-apply plugin: 'com.google.gms.google-services' // This should be at the bottom of the app-level build.gradle

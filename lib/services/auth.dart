@@ -14,5 +14,13 @@ Stream<UserModel?>get user{
   return _auth.authStateChanges().map(_userwithFirebaseUserUid);
 }
 
+Future signOut()async{
+  try{
+    return await _auth.signOut();
+  }catch(err){
+    print(err.toString());
+    return null;
+  }
+}
 
 }
