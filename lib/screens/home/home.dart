@@ -1,3 +1,4 @@
+import 'package:doctor_patient_app/constants/colors.dart';
 import 'package:doctor_patient_app/services/auth.dart';
 import 'package:flutter/material.dart';
 
@@ -17,13 +18,29 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return MaterialApp(
     home: Scaffold(
-      appBar: AppBar(title: Text("Home"),
+      backgroundColor: bgColor,
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: bgColor,
 
       actions: [
-        ElevatedButton(onPressed: ()async{
+        ElevatedButton(
+          style: const ButtonStyle(
+            backgroundColor: WidgetStatePropertyAll(bgColor),
+          ),
+          onPressed: ()async{
           await _auth.signOut();
-        }, child: const Icon(Icons.logout))
+        }, child: const Icon(Icons.logout,),)
       ],
+      ),
+      body: Center(
+        child: const Column(
+          children: [
+            Text('Home Page',style: TextStyle(color: Colors.amber,fontSize: 40,fontWeight: FontWeight.w900),
+            ),
+          ],
+        
+        ),
       ),
     ),
       

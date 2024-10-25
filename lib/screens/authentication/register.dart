@@ -1,8 +1,11 @@
 import 'package:doctor_patient_app/constants/styles.dart';
+import 'package:doctor_patient_app/services/auth.dart';
 import 'package:flutter/material.dart';
 
 class Register extends StatefulWidget {
-  const Register({super.key});
+  final Function toggle;
+
+  const Register({super.key, required this.toggle});
 
 
   @override
@@ -10,6 +13,8 @@ class Register extends StatefulWidget {
 }
 
 class _RegisterState extends State<Register> {
+
+  final AuthServices _auth=AuthServices();
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _fullNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
@@ -118,14 +123,16 @@ class _RegisterState extends State<Register> {
                       const Text("Already have an account?", style: labelStyle),
                       TextButton(
                         onPressed: () {
-                          // Navigate to login page
+                          widget.toggle;
                         },
-                        child:  GestureDetector(
-                          onTap: () {
-                            // Navigate to login page
-                          },
-                          child: const Text('Login', style: linkTextStyle)),
-                      ),
+                      
+                          
+                          child: GestureDetector(
+                            onTap: () {
+                              widget.toggle();
+                            },
+                            child: const Text('Login', style: linkTextStyle))),
+                      
                     ],
                   ),
                   const SizedBox(height: 15),
@@ -165,9 +172,11 @@ class _RegisterState extends State<Register> {
                   ),
                   const SizedBox(height: 30),
                   ElevatedButton(
-                    onPressed: () {
+                    onPressed: () async{
                       if (_formKey.currentState?.validate() ?? false) {
                         // Process registration
+                        dynamic result=await _auth.registerWithEmailandPassword(_emailController.text, _passwordController.text);
+                        
                       }
                     },
                     style: elevatedButtonStyle,

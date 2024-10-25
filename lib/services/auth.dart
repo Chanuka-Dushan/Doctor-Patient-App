@@ -23,4 +23,31 @@ Future signOut()async{
   }
 }
 
+//sign in with email and password
+Future registerWithEmailandPassword(String email,String password)async{
+  try{
+    UserCredential result= await _auth.createUserWithEmailAndPassword(email: email, password: password);
+    User? user=result.user;
+
+    return _userwithFirebaseUserUid(user);
+  }catch(err){
+    print(err.toString());
+    return null;
+  }
+}
+
+Future signInWithEmailandPassword(String email,String password)async{
+  try{
+    UserCredential result=await _auth.signInWithEmailAndPassword(email: email, password: password);
+    User? user=result.user;
+
+    return _userwithFirebaseUserUid(user);
+  }catch(err){
+    print(err.toString());
+    return null;
+  }
+}
+
+
+
 }
