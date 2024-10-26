@@ -44,7 +44,7 @@ class _RegisterState extends State<Register> {
                 children: [
                   const SizedBox(height: 30),
                   const Text(
-                    'Register',
+                    'Create Account',
                     style: titleStyle,
                     textAlign: TextAlign.center,
                   ),
@@ -161,7 +161,7 @@ class _RegisterState extends State<Register> {
                       const SizedBox(width: 20),
                       GestureDetector(
                         onTap: () {
-                          // Sign in with google
+                          dynamic result= _auth.signInWithGoogle();
                         },
                         child: const Image(
                           image: AssetImage("assets/search.png"),

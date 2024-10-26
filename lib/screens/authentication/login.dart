@@ -49,7 +49,7 @@ class _Sign_InState extends State<Sign_In> {
                   const Center(
                     child: Image(
                       image: AssetImage('assets/logo1.png'),
-                      height: 150,
+                      height: 250,
                     ),
                   ),
                   const SizedBox(height: 30),
@@ -141,6 +141,7 @@ class _Sign_InState extends State<Sign_In> {
                       GestureDetector(
                         onTap: () {
                           // Sign in with google
+                          dynamic result= _auth.signInWithGoogle();
                           
                         },
                         child: const Image(
