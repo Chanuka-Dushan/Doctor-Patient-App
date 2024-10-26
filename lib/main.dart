@@ -18,8 +18,10 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return StreamProvider<UserModel?>.value(
       initialData: UserModel(uid: ""),  // Provide initial UserModel
-      value: AuthServices().user, // Stream of user from AuthServices
+      value: AuthServices().user, 
+      // Stream of user from AuthServices
       child: MaterialApp(
+        debugShowCheckedModeBanner: false,
         title: 'Doctor-Patient App',
         theme: ThemeData(
           primarySwatch: Colors.blue,
