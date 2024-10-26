@@ -7,22 +7,23 @@ class Register extends StatefulWidget {
 
   const Register({super.key, required this.toggle});
 
-
   @override
   State<Register> createState() => _RegisterState();
 }
 
 class _RegisterState extends State<Register> {
-
-  final AuthServices _auth=AuthServices();
+  final AuthServices _auth = AuthServices();
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _fullNameController = TextEditingController();
+ 
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  
+  bool isLoading = false; // Loading state variable
+  String? errorMessage; // Variable to store error messages
 
   @override
   void dispose() {
-    _fullNameController.dispose();
+    
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -56,24 +57,6 @@ class _RegisterState extends State<Register> {
                     ),
                   ),
                   const SizedBox(height: 30),
-                  TextFormField(
-                    controller: _fullNameController,
-                    decoration: InputDecoration(
-                      hintText: 'Full Name',
-                      prefixIcon: const Icon(Icons.person),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    style: inputTextStyle,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your full name';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 15),
                   TextFormField(
                     controller: _emailController,
                     decoration: InputDecoration(
@@ -117,22 +100,23 @@ class _RegisterState extends State<Register> {
                     },
                   ),
                   const SizedBox(height: 15),
+                  if (errorMessage != null) // Show error message if exists
+                    Text(
+                      errorMessage!,
+                      style: TextStyle(color: Colors.red, fontSize: 16),
+                      textAlign: TextAlign.center,
+                    ),
+                  const SizedBox(height: 15),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Text("Already have an account?", style: labelStyle),
                       TextButton(
                         onPressed: () {
-                          widget.toggle;
+                          widget.toggle();
                         },
-                      
-                          
-                          child: GestureDetector(
-                            onTap: () {
-                              widget.toggle();
-                            },
-                            child: const Text('Login', style: linkTextStyle))),
-                      
+                        child: const Text('Login', style: linkTextStyle),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 15),
@@ -157,11 +141,13 @@ class _RegisterState extends State<Register> {
                         onTap: () {
                           // Sign in with facebook
                         },
-                        child: const Icon(Icons.facebook_rounded, size: 40, color: Colors.blue)),
+                        child: const Icon(Icons.facebook_rounded, size: 40, color: Colors.blue),
+                      ),
                       const SizedBox(width: 20),
                       GestureDetector(
                         onTap: () {
-                          dynamic result= _auth.signInWithGoogle();
+                          // Sign in with Google
+                          dynamic result = _auth.signInWithGoogle();
                         },
                         child: const Image(
                           image: AssetImage("assets/search.png"),
@@ -172,15 +158,35 @@ class _RegisterState extends State<Register> {
                   ),
                   const SizedBox(height: 30),
                   ElevatedButton(
-                    onPressed: () async{
+                    onPressed: isLoading ? null : () async {
                       if (_formKey.currentState?.validate() ?? false) {
+                        setState(() {
+                          isLoading = true; // Set loading to true
+                          errorMessage = null; // Reset error message
+                        });
+
                         // Process registration
-                        dynamic result=await _auth.registerWithEmailandPassword(_emailController.text, _passwordController.text);
-                        
+                        dynamic result = await _auth.registerWithEmailAndPassword(
+                          _emailController.text,
+                          _passwordController.text,
+                        );
+
+                        setState(() {
+                          isLoading = false; // Set loading to false after operation
+                        });
+
+                        if (result == null) {
+                          // Handle registration failure (e.g., user already exists)
+                          setState(() {
+                            errorMessage = "User already exists or registration failed.";
+                          });
+                        }
                       }
                     },
                     style: elevatedButtonStyle,
-                    child: const Text('Register'),
+                    child: isLoading
+                      ? CircularProgressIndicator(valueColor: AlwaysStoppedAnimation(Colors.white))
+                      : const Text('Register'),
                   ),
                   const SizedBox(height: 30),
                 ],
