@@ -18,8 +18,8 @@ class _RegisterState extends State<Register> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   
-  bool isLoading = false; // Loading state variable
-  String? errorMessage; // Variable to store error messages
+  bool isLoading = false; 
+  String? errorMessage; 
 
   @override
   void dispose() {
