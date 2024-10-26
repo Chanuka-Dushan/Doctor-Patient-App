@@ -9,7 +9,7 @@ xmlns:tools="http://schemas.android.com/tools">
     <application
         android:label="doctor_patient_app"
         android:name="${applicationName}"
-        android:icon="@mipmap/launcher_icon">
+        android:icon="@mipmap/ic_launcher">
        
 
         <activity
