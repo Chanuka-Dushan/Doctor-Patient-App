@@ -1,6 +1,7 @@
 import 'package:doctor_patient_app/constants/styles.dart';
 import 'package:doctor_patient_app/services/auth.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class Register extends StatefulWidget {
   final Function toggle;
@@ -14,7 +15,7 @@ class Register extends StatefulWidget {
 class _RegisterState extends State<Register> {
   final AuthServices _auth = AuthServices();
   final _formKey = GlobalKey<FormState>();
- 
+  
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   
@@ -23,10 +24,60 @@ class _RegisterState extends State<Register> {
 
   @override
   void dispose() {
-    
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  Future<void> _registerUser() async {
+    if (_formKey.currentState?.validate() ?? false) {
+      setState(() {
+        errorMessage = null; // Reset error message
+      });
+
+      try {
+        setState(() {
+          isLoading = true; // Set loading to true
+        });
+
+        // Process registration
+        await _auth.registerWithEmailAndPassword(
+          _emailController.text,
+          _passwordController.text,
+        );
+
+        // Handle successful registration (e.g., navigate to home page)
+        // You can add navigation logic here
+
+      } on FirebaseAuthException catch (e) {
+        // Handle Firebase authentication errors specifically
+        setState(() {
+          switch (e.code) {
+            case 'weak-password':
+              errorMessage = 'The password provided is too weak.';
+              break;
+            case 'email-already-in-use':
+              errorMessage = 'The account already exists for that email.';
+              break;
+            case 'invalid-email':
+              errorMessage = 'The email address is not valid.';
+              break;
+            default:
+              errorMessage = 'An unknown error occurred. Please try again.';
+              break;
+          }
+        });
+      } catch (e) {
+        // Handle other types of errors
+        setState(() {
+          errorMessage = 'An unexpected error occurred: ${e.toString()}';
+        });
+      } finally {
+        setState(() {
+          isLoading = false; // Set loading to false
+        });
+      }
+    }
   }
 
   @override
@@ -103,7 +154,7 @@ class _RegisterState extends State<Register> {
                   if (errorMessage != null) // Show error message if exists
                     Text(
                       errorMessage!,
-                      style: TextStyle(color: Colors.red, fontSize: 16),
+                      style: const TextStyle(color: Colors.red, fontSize: 16),
                       textAlign: TextAlign.center,
                     ),
                   const SizedBox(height: 15),
@@ -113,7 +164,7 @@ class _RegisterState extends State<Register> {
                       const Text("Already have an account?", style: labelStyle),
                       TextButton(
                         onPressed: () {
-                          widget.toggle();
+                          widget.toggle(); // Navigate to login page
                         },
                         child: const Text('Login', style: linkTextStyle),
                       ),
@@ -139,15 +190,28 @@ class _RegisterState extends State<Register> {
                     children: [
                       GestureDetector(
                         onTap: () {
-                          // Sign in with facebook
+                          // Sign in with Facebook
                         },
                         child: const Icon(Icons.facebook_rounded, size: 40, color: Colors.blue),
                       ),
                       const SizedBox(width: 20),
                       GestureDetector(
-                        onTap: () {
-                          // Sign in with Google
-                          dynamic result = _auth.signInWithGoogle();
+                        onTap: () async {
+                          try {
+                            setState(() {
+                              isLoading = true; // Set loading to true
+                            });
+                            await _auth.signInWithGoogle();
+                            // Handle successful sign-in (e.g., navigate to home page)
+                          } catch (e) {
+                            setState(() {
+                              errorMessage = e.toString(); // Set error message
+                            });
+                          } finally {
+                            setState(() {
+                              isLoading = false; // Set loading to false
+                            });
+                          }
                         },
                         child: const Image(
                           image: AssetImage("assets/search.png"),
@@ -158,34 +222,10 @@ class _RegisterState extends State<Register> {
                   ),
                   const SizedBox(height: 30),
                   ElevatedButton(
-                    onPressed: isLoading ? null : () async {
-                      if (_formKey.currentState?.validate() ?? false) {
-                        setState(() {
-                          isLoading = true; // Set loading to true
-                          errorMessage = null; // Reset error message
-                        });
-
-                        // Process registration
-                        dynamic result = await _auth.registerWithEmailAndPassword(
-                          _emailController.text,
-                          _passwordController.text,
-                        );
-
-                        setState(() {
-                          isLoading = false; // Set loading to false after operation
-                        });
-
-                        if (result == null) {
-                          // Handle registration failure (e.g., user already exists)
-                          setState(() {
-                            errorMessage = "User already exists or registration failed.";
-                          });
-                        }
-                      }
-                    },
+                    onPressed: isLoading ? null : _registerUser,
                     style: elevatedButtonStyle,
                     child: isLoading
-                      ? CircularProgressIndicator(valueColor: AlwaysStoppedAnimation(Colors.white))
+                      ? const CircularProgressIndicator(valueColor: AlwaysStoppedAnimation(Colors.white))
                       : const Text('Register'),
                   ),
                   const SizedBox(height: 30),

@@ -15,49 +15,57 @@ class AuthServices {
     return user != null ? UserModel(uid: user.uid, email: user.email) : null;
   }
 
-  // Create a stream for checking the auth changes in the user
+  // Stream for checking the auth changes in the user
   Stream<UserModel?> get user {
     return _auth.authStateChanges().map(_userWithFirebaseUserUid);
   }
 
-  Future<void> signOut() async {
+  Future<void> signOut({Function(bool)? onLoading, Function(String?)? onError}) async {
     try {
+      if (onLoading != null) onLoading(true);
       await _googleSignIn.signOut();
       await _facebookSignIn.logOut();
       await _auth.signOut();
       await _secureStorage.delete(key: 'session_token'); // Clear session
     } catch (err) {
-      print("Sign out error: ${err.toString()}");
+      if (onError != null) onError("Sign out error: ${err.toString()}");
+    } finally {
+      if (onLoading != null) onLoading(false);
     }
   }
 
   // Sign up with email and password
-  Future<String?> registerWithEmailAndPassword(String email, String password) async {
+ // Register with email and password
+  Future<dynamic> registerWithEmailAndPassword(String email, String password) async {
     try {
-      UserCredential result =
-          await _auth.createUserWithEmailAndPassword(email: email, password: password);
-      await _secureStorage.write(key: 'session_token', value: result.user?.uid); // Store session
-      return "Registration successful"; // or return user model if needed
-    } catch (err) {
-      return "Registration error: ${err.toString()}"; // Return error message
+      // Your Firebase registration logic here
+      UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      return userCredential;
+    } catch (e) {
+      throw e; // Throw the error to be caught in the UI
     }
   }
 
   // Sign in with email and password
-  Future<String?> signInWithEmailAndPassword(String email, String password) async {
+  Future<dynamic> signInWithEmailAndPassword(String email, String password) async {
     try {
-      UserCredential result =
-          await _auth.signInWithEmailAndPassword(email: email, password: password);
-      await _secureStorage.write(key: 'session_token', value: result.user?.uid); // Store session
-      return "Login successful"; // or return user model if needed
-    } catch (err) {
-      return "Login error: ${err.toString()}"; // Return error message
+      UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      return userCredential;
+    } catch (e) {
+      throw e; // Throw the error to be caught in the UI
     }
   }
 
   // Sign in with Google
-  Future<String?> signInWithGoogle() async {
+  Future<String?> signInWithGoogle({Function(bool)? onLoading, Function(String?)? onError}) async {
     try {
+      if (onLoading != null) onLoading(true);
       await _googleSignIn.signOut();
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) {
@@ -75,13 +83,17 @@ class AuthServices {
       await _secureStorage.write(key: 'session_token', value: result.user?.uid); // Store session
       return "Google login successful";
     } catch (err) {
-      return "Google login error: ${err.toString()}"; // Return error message
+      if (onError != null) onError("Google login error: ${err.toString()}");
+      return null;
+    } finally {
+      if (onLoading != null) onLoading(false);
     }
   }
 
   // Sign in with Facebook
-  Future<String?> signInWithFacebook() async {
+  Future<String?> signInWithFacebook({Function(bool)? onLoading, Function(String?)? onError}) async {
     try {
+      if (onLoading != null) onLoading(true);
       final LoginResult result = await FacebookAuth.instance.login();
 
       if (result.status == LoginStatus.success) {
@@ -95,10 +107,14 @@ class AuthServices {
         await _secureStorage.write(key: 'session_token', value: userCredential.user?.uid); // Store session
         return "Facebook login successful";
       } else {
-        return "Facebook login failed: ${result.message}"; // Return error message
+        if (onError != null) onError("Facebook login failed: ${result.message}");
+        return null;
       }
     } catch (err) {
-      return "Facebook login error: ${err.toString()}"; // Return error message
+      if (onError != null) onError("Facebook login error: ${err.toString()}");
+      return null;
+    } finally {
+      if (onLoading != null) onLoading(false);
     }
   }
 

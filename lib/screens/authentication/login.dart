@@ -1,5 +1,6 @@
 import 'package:doctor_patient_app/constants/styles.dart';
 import 'package:doctor_patient_app/services/auth.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class Sign_In extends StatefulWidget {
@@ -15,8 +16,9 @@ class _Sign_InState extends State<Sign_In> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  bool isLoading = false; // Loading state variable
-  String? errorMessage; // Variable to store error messages
+
+  String? errorMessage; // Variable to hold the error message
+  bool isLoading = false; // Variable to hold loading state
 
   @override
   void dispose() {
@@ -24,6 +26,60 @@ class _Sign_InState extends State<Sign_In> {
     _passwordController.dispose();
     super.dispose();
   }
+
+ Future<void> _loginUser() async {
+  if (_formKey.currentState?.validate() ?? false) {
+    setState(() {
+      errorMessage = null; // Reset error message
+    });
+
+    try {
+      setState(() {
+        isLoading = true; // Set loading to true
+      });
+
+      // Process login
+      await _auth.signInWithEmailAndPassword(
+        _emailController.text,
+        _passwordController.text,
+      );
+
+      // Handle successful login (e.g., navigate to home page)
+
+    } on FirebaseAuthException catch (e) {
+      // Handle Firebase authentication errors
+      setState(() {
+        switch (e.code) {
+          case 'user-not-found':
+            errorMessage = 'No user found with this email. Please register first.';
+            break;
+          case 'wrong-password':
+            errorMessage = 'Invalid password. Please try again.';
+            break;
+          case 'invalid-email':
+            errorMessage = 'The email address is not valid.';
+            break;
+          case 'user-disabled':
+            errorMessage = 'This user account has been disabled.';
+            break;
+          default:
+            errorMessage = 'Invalid Credentials .error occurred.';
+            break;
+        }
+      });
+    } catch (e) {
+      // Handle other types of errors
+      setState(() {
+        errorMessage = 'An unexpected error occurred: ${e.toString()}';
+      });
+    } finally {
+      setState(() {
+        isLoading = false; // Set loading to false
+      });
+    }
+  }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +105,7 @@ class _Sign_InState extends State<Sign_In> {
                   const Center(
                     child: Image(
                       image: AssetImage('assets/logo1.png'),
-                      height: 150,
+                      height: 250,
                     ),
                   ),
                   const SizedBox(height: 30),
@@ -99,7 +155,7 @@ class _Sign_InState extends State<Sign_In> {
                   if (errorMessage != null) // Show error message if exists
                     Text(
                       errorMessage!,
-                      style: TextStyle(color: Colors.red, fontSize: 16),
+                      style: const TextStyle(color: Colors.red, fontSize: 16),
                       textAlign: TextAlign.center,
                     ),
                   const SizedBox(height: 15),
@@ -135,10 +191,19 @@ class _Sign_InState extends State<Sign_In> {
                     children: [
                       GestureDetector(
                         onTap: () async {
-                          dynamic result = await _auth.signInWithFacebook();
-                          if (result == null) {
+                          setState(() {
+                            isLoading = true; // Set loading state
+                          });
+                          try {
+                            await _auth.signInWithFacebook();
+                            // Handle successful login (e.g., navigate to home page)
+                          } catch (e) {
                             setState(() {
-                              errorMessage = "Facebook login failed.";
+                              errorMessage = 'Facebook login failed: ${e.toString()}'; // Set error message
+                            });
+                          } finally {
+                            setState(() {
+                              isLoading = false; // Reset loading state
                             });
                           }
                         },
@@ -147,10 +212,19 @@ class _Sign_InState extends State<Sign_In> {
                       const SizedBox(width: 20),
                       GestureDetector(
                         onTap: () async {
-                          dynamic result = await _auth.signInWithGoogle();
-                          if (result == null) {
+                          setState(() {
+                            isLoading = true; // Set loading state
+                          });
+                          try {
+                            await _auth.signInWithGoogle();
+                            // Handle successful login (e.g., navigate to home page)
+                          } catch (e) {
                             setState(() {
-                              errorMessage = "Google login failed.";
+                              errorMessage = 'Google login failed: ${e.toString()}'; // Set error message
+                            });
+                          } finally {
+                            setState(() {
+                              isLoading = false; // Reset loading state
                             });
                           }
                         },
@@ -161,36 +235,18 @@ class _Sign_InState extends State<Sign_In> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 15),
                   ElevatedButton(
-                    onPressed: isLoading ? null : () async {
-                      if (_formKey.currentState?.validate() ?? false) {
-                        setState(() {
-                          isLoading = true; // Set loading to true
-                          errorMessage = null; // Reset error message
-                        });
-
-                        // Login user
-                        dynamic result = await _auth.signInWithEmailAndPassword(
-                          _emailController.text,
-                          _passwordController.text,
-                        );
-
-                        setState(() {
-                          isLoading = false; // Set loading to false after operation
-                        });
-
-                        if (result == null) {
-                          // Handle login failure
-                          setState(() {
-                            errorMessage = "Email login failed. Please check your credentials.";
-                          });
-                        }
-                      }
-                    },
-                    child: isLoading 
-                      ? CircularProgressIndicator(valueColor: AlwaysStoppedAnimation(Colors.white))
-                      : const Text('Login'),
+                    onPressed: _loginUser,
+                    child: isLoading
+                        ? const CircularProgressIndicator()
+                        : const Text('Login'),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 15),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
                   ),
                 ],
               ),
